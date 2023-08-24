@@ -1,0 +1,33 @@
+import sounddevice as sd
+import numpy as np
+import soundfile as sf
+import speech_recognition as sr
+import os
+
+recognizer = sr.Recognizer()
+
+mic_index = 11  # Use the correct microphone index
+
+print("Say something...")
+
+audio_data = sd.rec(int(5 * 44100), samplerate=44100, channels=1, dtype=np.int16, device=mic_index)
+sd.wait()
+
+# Save audio data to a temporary WAV file
+temp_wav_file = "temp_audio.wav"
+sf.write(temp_wav_file, audio_data, samplerate=44100)
+
+# Load the saved audio file
+with sr.AudioFile(temp_wav_file) as source:
+    audio = recognizer.record(source)
+
+# Clean up the temporary file
+os.remove(temp_wav_file)
+
+try:
+    recognized_text = recognizer.recognize_google(audio)
+    print("You said:", recognized_text)
+except sr.UnknownValueError:
+    print("Sorry, could not understand audio.")
+except sr.RequestError as e:
+    print("Could not request results; {0}".format(e))
